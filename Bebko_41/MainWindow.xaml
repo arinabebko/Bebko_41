@@ -1,0 +1,20 @@
+﻿<Window x:Class="Bebko_41.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Bebko_41"
+        mc:Ignorable="d"
+        Title="Bebko 41" Height="450" Width="800" Icon="pic/icon.ico" >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="75"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <Image Source="pic/logo.png" HorizontalAlignment="Left"></Image>
+        <TextBlock Text="41 размер" FontSize="30" HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Comic Sans MS"></TextBlock>
+        <Frame  Grid.Row="1" Name="MainFrame" NavigationUIVisibility="Hidden" ContentRendered="MainFrame_ContentRendered"></Frame>
+        <Button Content="назад" Name="BtnBack" HorizontalAlignment="Right" VerticalAlignment="Center" Click="BtnBack_Click"></Button>
+    </Grid>
+</Window>
