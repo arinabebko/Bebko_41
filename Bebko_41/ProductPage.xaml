@@ -15,8 +15,33 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Vertical">
+
+            <StackPanel Orientation="Vertical" Grid.Row="0">
+                <StackPanel Orientation="Vertical" >
+                    <StackPanel Orientation="Horizontal" >
+                        <TextBlock Text="Вы авторизированы как " VerticalAlignment="Center" HorizontalAlignment="Left"></TextBlock>
+
+                        <TextBlock Name="FOITB"></TextBlock>
+
+                    </StackPanel>
+
+
+                    <TextBlock Text="Роль: " VerticalAlignment="Center" HorizontalAlignment="Left">
+          
+          <TextBlock Name="RoleTB"></TextBlock> 
+      </TextBlock>
+                </StackPanel>
+      
+            
+            
             <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="0">
 
+                
+              
+                
+                
+                
+                
             <StackPanel Orientation="Vertical">
                 <TextBlock Text="введине название для поиска" TextAlignment="Right"></TextBlock>
                 <TextBox Name="TBSearch" TextChanged="TBSearch_TextChanged" Width="200" Height="30" Margin="15,0,0,0"></TextBox>
@@ -53,8 +78,8 @@
             </TextBlock>
         
         </StackPanel>
-        
-        
+        </StackPanel>
+
         <ListView Name="ProductListView"  Margin="5,5,5,5" Grid.Row="1">
             <ListView.ItemTemplate>
                 <DataTemplate>

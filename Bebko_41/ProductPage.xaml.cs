@@ -20,9 +20,33 @@ namespace Bebko_41
     /// </summary>
     public partial class ProductPage : Page
     {
-        public ProductPage()
+        private User currentUser;
+        public ProductPage(User user)
         {
             InitializeComponent();
+            if (user == null)
+            {
+                FOITB.Text = "Гость";
+                RoleTB.Text = "Посетитель";
+
+            }
+            else
+            {
+                FOITB.Text = user.UserSurname + " " + user.UserName + " " + user.UserPatronymic;
+                switch (user.UserRole)
+                {
+                    case 1:
+                        RoleTB.Text = "Администратор"; break;
+                    case 2:
+                        RoleTB.Text = "Клиент"; break;
+                    case 3:
+                        RoleTB.Text = "Менеджер"; break;
+                }
+
+            }
+
+
+
             var currentProducts = Bebko_41Entities.GetContext().Product.ToList();
             ProductListView.ItemsSource = currentProducts;
 
