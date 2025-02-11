@@ -35,6 +35,8 @@ namespace Bebko_41
             User user = Bebko_41Entities.GetContext().User.ToList().Find(p => p.UserLogin == login && p.UserPassword == password);
 
             Manager.MainFrame.Navigate(new ProductPage(user=null));
+            userscaptcha.Clear();
+            rand();
         }
 
 
@@ -52,6 +54,7 @@ namespace Bebko_41
 
             captchaFour.Text = symbolsForCaptcha[random.Next(symbolsForCaptcha.Length)].ToString();
             correct = captchaOne.Text + captchaTwo.Text + captchaThree.Text + captchaFour.Text;
+            userscaptcha.Clear();
         }
 
 
@@ -59,25 +62,53 @@ namespace Bebko_41
         {
             string login = TBlogin.Text;
             string password = TBparol.Text;
-
-            if(login =="" || password=="")
+            int f;
+            f = 0;
+            userscaptcha.Clear();
+            if (login =="" || password=="")
             {
                 MessageBox.Show("Есть пустые поля");
                 return;
             }
+            if (f == 1)
+            {
+                string userSequence = userscaptcha.Text;
 
+                if (userSequence == correct)// Проверка на совпадение с правильной последовательностью 
+                {
+                    MessageBox.Show("Капча введена правильно!");
+                    // Дальнейшие действия при успешном прохождении капчи...
+
+                   
+                    captchaSP.Visibility = Visibility.Collapsed;
+                    userscaptcha.Clear();
+                }
+                else
+                {
+                    MessageBox.Show("Попробуйте еще раз.");
+                    userscaptcha.Clear();
+                    rand();
+
+                    //   BtnEnte.await Task.Delay(10000);
+
+                    // Очистка текстовых полей и повторная генерация новой последовательности символом может быть полезна здесь.
+                }
+            }
 
             User user = Bebko_41Entities.GetContext().User.ToList().Find(p => p.UserLogin == login && p.UserPassword == password);
-            if(user !=null)
+            if (user != null)
             {
                 Manager.MainFrame.Navigate(new ProductPage(user));
                 TBlogin.Text = "";
                 TBparol.Text = "";
+                captchaSP.Visibility = Visibility.Collapsed;
+
             }
             else
             {
                 MessageBox.Show("ошибка авторизации, введите капчу");
                 BtnEnter.IsEnabled = false;
+                f = 1;
 
                 //  System.Threading.Thread.Sleep(10000);
                 //Capcha capchaWindow = new Capcha(); // Создаем экземпляр окна капчи
@@ -86,43 +117,23 @@ namespace Bebko_41
 
 
                 rand();
-                 
+
 
                 captchaSP.Visibility = Visibility.Visible;
 
-           
-              
+
+
 
                 await Task.Delay(10000);
 
-
-
-
-
-
-            }
-        }
-
-        private void BtnCaptcha_Click(object sender, RoutedEventArgs e)
-        {
-            string userSequence = userscaptcha.Text;
-
-            if (userSequence == correct)// Проверка на совпадение с правильной последовательностью 
-            {
-                MessageBox.Show("Капча введена правильно!");
-                // Дальнейшие действия при успешном прохождении капчи...
-             
                 BtnEnter.IsEnabled = true;
-                captchaSP.Visibility = Visibility.Collapsed;
-                userscaptcha.Clear();
+
             }
-            else
-            {
-                MessageBox.Show("Попробуйте еще раз.");
-                userscaptcha.Clear();
-                rand();
-                // Очистка текстовых полей и повторная генерация новой последовательности символом может быть полезна здесь.
-            }
+
         }
-    }
+        }
+
+       
+    
 }
+

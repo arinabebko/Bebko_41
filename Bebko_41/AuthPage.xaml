@@ -22,9 +22,9 @@
 
 
         <TextBlock Text="Логин" Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Row="0"></TextBlock>
-        <TextBlock Text="Пароль" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
-        <TextBox Name="TBlogin" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Column="1" Width="200" Height="30"></TextBox>
-        <TextBox Name="TBparol" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Width="200" Height="30"></TextBox>
+        <TextBlock Text="Пароль" Margin="0,0,0,20" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+        <TextBox Name="TBlogin"  Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Grid.Column="1" Width="200" Height="30"></TextBox>
+        <TextBox Name="TBparol" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Column="1" Width="200" Height="30" Margin="0,0,0,20"></TextBox>
 
         <Button Content="Войти как гость" Name="BtnEnterGuest" Click="BtnEnterGuest_Click" Width="200" Height="50" Grid.Column="0" Grid.Row="2"></Button>
 
@@ -32,26 +32,25 @@
 
 
 
-        <StackPanel Orientation="Vertical" Grid.Row="1" Grid.RowSpan="2" Margin="0,30,0,0" Grid.Column="0" Name="captchaSP"  Grid.ColumnSpan="2" HorizontalAlignment="Center" Width="150" >
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Margin="0,70,0,0" Grid.Column="0" Name="captchaSP"  Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Bottom"  >
 
 
-            <TextBlock Text="Введите капчу "></TextBlock>
-            <StackPanel Orientation="Horizontal" Grid.Row="2"    >
+            <TextBlock Text="Введите капчу " Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom"  Grid.Row="0"></TextBlock>
+            <StackPanel  Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Bottom" Grid.Row="0" Orientation="Horizontal"    >
             
 
-            <TextBlock Name="captchaOne" Margin="30,0,0,0 " TextDecorations="Strikethrough"></TextBlock>
+            <TextBlock Name="captchaOne" Margin="30,10,0,0 " TextDecorations="Strikethrough"></TextBlock>
 
-            <TextBlock Name="captchaTwo" Margin="0, 5, 0,0 " TextDecorations="Strikethrough"></TextBlock>
+            <TextBlock Name="captchaTwo" Margin="0, 15, 0,0 " TextDecorations="Strikethrough"></TextBlock>
 
-            <TextBlock Name="captchaThree" Margin="0,0,0,0 " TextDecorations="Strikethrough"></TextBlock>
+            <TextBlock Name="captchaThree" Margin="0,10,0,0 " TextDecorations="Strikethrough"></TextBlock>
 
-            <TextBlock Name="captchaFour" Margin="0,10,0,0 " TextDecorations="Strikethrough"></TextBlock>
+            <TextBlock Name="captchaFour" Margin="0,20,0,0 " TextDecorations="Strikethrough"></TextBlock>
             </StackPanel>
 
-            <TextBox Width="90" Height="30" HorizontalAlignment="Center" Margin="10" VerticalAlignment="Center" Name="userscaptcha"></TextBox>
+            <TextBox Width="200" Margin="10,30,0,0"  Height="27" HorizontalAlignment="Center"  VerticalAlignment="Bottom" Name="userscaptcha"></TextBox>
 
 
-            <Button Name="BtnCaptcha" Content="ввести" Click="BtnCaptcha_Click" Width="90" Height="50" HorizontalAlignment="Center"></Button>
         </StackPanel>
 
 
