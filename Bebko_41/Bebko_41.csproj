@@ -64,28 +64,28 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BebkoModel.cs">
+    <Compile Include="Bebko_Model.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Order.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="OrderProduct.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="PickUpPoint.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Product.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="Role.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Compile Include="User.cs">
-      <DependentUpon>BebkoModel.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.tt</DependentUpon>
     </Compile>
     <Page Include="AddEditPage.xaml">
       <SubType>Designer</SubType>
@@ -102,15 +102,15 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BebkoModel.Context.cs">
+    <Compile Include="Bebko_Model.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>BebkoModel.Context.tt</DependentUpon>
+      <DependentUpon>Bebko_Model.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="BebkoModel.Designer.cs">
+    <Compile Include="Bebko_Model.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>BebkoModel.edmx</DependentUpon>
+      <DependentUpon>Bebko_Model.edmx</DependentUpon>
     </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -143,12 +143,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EntityDeploy Include="BebkoModel.edmx">
+    <EntityDeploy Include="Bebko_Model.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>BebkoModel.Designer.cs</LastGenOutput>
+      <LastGenOutput>Bebko_Model.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <None Include="BebkoModel.edmx.diagram">
-      <DependentUpon>BebkoModel.edmx</DependentUpon>
+    <None Include="Bebko_Model.edmx.diagram">
+      <DependentUpon>Bebko_Model.edmx</DependentUpon>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -169,16 +169,6 @@
     <Resource Include="pic\logo.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="BebkoModel.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>BebkoModel.Context.cs</LastGenOutput>
-      <DependentUpon>BebkoModel.edmx</DependentUpon>
-    </Content>
-    <Content Include="BebkoModel.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>BebkoModel.edmx</DependentUpon>
-      <LastGenOutput>BebkoModel.cs</LastGenOutput>
-    </Content>
     <Resource Include="img\B320R5.jpg" />
     <Resource Include="img\D329H3.jpg" />
     <Resource Include="img\D572U8.jpg" />
@@ -193,6 +183,17 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Bebko_Model.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Bebko_Model.edmx</DependentUpon>
+      <LastGenOutput>Bebko_Model.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Bebko_Model.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>Bebko_Model.edmx</DependentUpon>
+      <LastGenOutput>Bebko_Model.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

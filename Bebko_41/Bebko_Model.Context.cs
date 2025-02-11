@@ -15,7 +15,10 @@ namespace Bebko_41
     
     public partial class Bebko_41Entities : DbContext
     {
-
+        public Bebko_41Entities()
+            : base("name=Bebko_41Entities")
+        {
+        }
         public static Bebko_41Entities _context;
 
         public static Bebko_41Entities GetContext()
@@ -25,15 +28,6 @@ namespace Bebko_41
             return _context;
 
         }
-
-
-
-
-        public Bebko_41Entities()
-            : base("name=Bebko_41Entities")
-        {
-        }
-    
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             throw new UnintentionalCodeFirstException();

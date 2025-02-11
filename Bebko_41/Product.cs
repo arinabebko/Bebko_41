@@ -33,12 +33,15 @@ namespace Bebko_41
         public string ProductDescription { get; set; }
         public string ProductPhoto { get; set; }
 
+
+       
+
         public string ProductPhotoPath
         {
             get
             {
                 if (ProductPhoto != null)
-                return "img/" + ProductPhoto;
+                    return "img/" + ProductPhoto;
                 else
                 {
                     return null;
@@ -47,7 +50,10 @@ namespace Bebko_41
         }
 
 
-        public string ProductStatus { get; set; }
+
+
+
+public string ProductStatus { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<OrderProduct> OrderProduct { get; set; }
