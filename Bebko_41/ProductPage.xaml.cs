@@ -38,6 +38,7 @@ namespace Bebko_41
 
             InitializeComponent();
             OrderBtn.Visibility = Visibility.Collapsed;
+        
             if (user == null)
             {
                 FOITB.Text = "Гость";
@@ -119,7 +120,22 @@ namespace Bebko_41
             int totalCount = Bebko_41Entities.GetContext().Product.Count(); // Общее количество записей в базе
             CountText.Text = $"Количество: {filteredCount} из {totalCount}";
         }
+        private void SetDeliveryDate()
+        {
+            if (selectedOrderProducts.Count == 0)
+                return;
 
+            bool allInStock = selectedOrderProducts.All(op =>
+                op.Product != null && op.Product.ProductQuantityInStock >= op.Quantity);
+
+            int deliveryDays = (allInStock && selectedOrderProducts.Count > 3) ? 3 : 6;
+            DateTime deliveryDate = DateTime.Now.AddDays(deliveryDays);
+
+            // Сохраняем дату для передачи в OrderWindow
+            this.deliveryDate = deliveryDate;
+        }
+
+        private DateTime? deliveryDate; // Поле для хранения рассчитанной даты
 
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -155,63 +171,58 @@ namespace Bebko_41
         {
             if (ProductListView.SelectedIndex >= 0)
             {
-
-                var selectedProducts = ProductListView.SelectedItems.Cast<Product>().ToList();
-                selectedProducts = selectedProducts.Distinct().ToList();
                 var prod = ProductListView.SelectedItem as Product;
-                //    selectedProducts.Add(prod);
-                savedSelectedProducts = selectedProducts;
-                var newOrderProd = new OrderProduct();
 
-                newOrderProd.OrderID = newOrderID;
-
-                newOrderProd.ProductArticleNumber = prod.ProductArticleNumber;
-                newOrderProd.Quantity = 1;
-                //  selectedOrderProducts.Add(newOrderProd); // Добавьте в список
-
-                var selOP = selectedOrderProducts.Where(p => Equals(p.ProductArticleNumber, prod.ProductArticleNumber));
-                if (selOP.Count() == 0)
+                // Добавляем товар в savedSelectedProducts (если его ещё нет)
+                if (!savedSelectedProducts.Any(p => p.ProductArticleNumber == prod.ProductArticleNumber))
                 {
-                    selectedOrderProducts.Add(newOrderProd);
+                    savedSelectedProducts.Add(prod);
+                }
+
+                // Обновляем количество в selectedOrderProducts
+                var existingOrderProduct = selectedOrderProducts
+                    .FirstOrDefault(op => op.ProductArticleNumber == prod.ProductArticleNumber);
+
+                if (existingOrderProduct == null)
+                {
+                    selectedOrderProducts.Add(new OrderProduct
+                    {
+                        ProductArticleNumber = prod.ProductArticleNumber,
+                        Quantity = 1,
+                        OrderID = newOrderID
+                    });
                 }
                 else
                 {
-                    foreach (OrderProduct p in selectedOrderProducts)
-                    {
-                        if (p.ProductArticleNumber == prod.ProductArticleNumber)
-                            p.Quantity++;
-                    }
+                    existingOrderProduct.Quantity++;
                 }
 
+                SetDeliveryDate();
                 OrderBtn.Visibility = Visibility.Visible;
-                ProductListView.SelectedIndex = -1;
 
             }
-
         }
-    
 
-        private void OrderBtn_Click(object sender, RoutedEventArgs e )
+
+        private void OrderBtn_Click(object sender, RoutedEventArgs e)
         {
             newOrderID = GetNextOrderId();
-            OrderWindow orderWindow = new OrderWindow(selectedOrderProducts, savedSelectedProducts, FIOO, newOrderID);
-            // orderWindow.ShowDialog();
+            var orderWindow = new OrderWindow(
+                selectedOrderProducts,
+                savedSelectedProducts,
+                FIOO,
+                newOrderID,
+                deliveryDate); // Передаем рассчитанную дату
+
             if (orderWindow.ShowDialog() == true)
             {
-                // Если заказ был сохранен, обновляем OrderID и списки
-                selectedOrderProducts = orderWindow.UpdatedSelectedOrderProducts;
-                savedSelectedProducts = orderWindow.UpdatedSelectedProducts;
+                // Обновляем списки после закрытия
+                selectedOrderProducts = orderWindow.UpdatedSelectedOrderProducts ?? new List<OrderProduct>();
+                savedSelectedProducts = orderWindow.UpdatedSelectedProducts ?? new List<Product>();
             }
-            if (selectedOrderProducts.Any())
-            {
-                OrderBtn.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                OrderBtn.Visibility = Visibility.Collapsed;
-            }
+
+            OrderBtn.Visibility = selectedOrderProducts.Any() ? Visibility.Visible : Visibility.Collapsed;
         }
-      
 
 
     }

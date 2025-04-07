@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-
+using System.Data.Entity; // Добавьте в начале файла
 namespace Bebko_41
 {
     /// <summary>
@@ -34,210 +34,244 @@ namespace Bebko_41
 
         private int existingOrderID;
 
-        public OrderWindow(List<OrderProduct> selectedOrderProducts, List<Product> selectedProducts, string FIO, int orderID)
+        public OrderWindow(List<OrderProduct> selectedOrderProducts, List<Product> selectedProducts, string FIO, int orderID, DateTime? precalculatedDeliveryDate = null)
         {
+
             InitializeComponent();
+            if (precalculatedDeliveryDate.HasValue)
+            {
+                DateDeliverDP.SelectedDate = precalculatedDeliveryDate.Value;
+            }
+            else
+            {
+                SetDeliveryDate(); // Рассчитываем, если дата не передана
+            }
             this.FIOO = FIO;
+            this.existingOrderID = orderID;
+
+            // Связываем OrderProduct с Product
+            foreach (var op in selectedOrderProducts)
+            {
+                op.Product = selectedProducts.FirstOrDefault(p => p.ProductArticleNumber == op.ProductArticleNumber);
+            }
+
             this.selectedOrderProducts = selectedOrderProducts;
             this.selectedProducts = selectedProducts;
-            this.existingOrderID = orderID;
+
             UpdateOrderInfo();
-            var pickUpPoints = Bebko_41Entities.GetContext().PickUpPoint.ToList();
-            PickUpCombo.ItemsSource = pickUpPoints;
-         
-            ShoeListView.ItemsSource = selectedProducts;
-            // Остальной код конструктора
-            ClientTB.Text = FIOO; // Если используете ClientTB
-            OrderDP.Text = DateTime.Now.ToString("dd.MM.yyyy"); // Формат даты: день.месяц.год
+
+            // Загрузка пунктов выдачи
+            //var pickUpPoints = Bebko_41Entities.GetContext().PickUpPoint.ToList();
+            using (var context = new Bebko_41Entities())
+            {
+                var pickUpPoints = context.PickUpPoint.ToList();
+                PickUpCombo.ItemsSource = pickUpPoints;
+            }
+          //  PickUpCombo.ItemsSource = pickUpPoints;
+
+            // Установка источника данных для ListView
+            ShoeListView.ItemsSource = selectedOrderProducts;
+
+            // Заполнение информации о заказе
+            ClientTB.Text = FIOO;
+            OrderDP.SelectedDate = DateTime.Now;
             OrderNumber.Text = existingOrderID.ToString();
+
+            // Если нужно загрузить существующие товары заказа из БД
+            using (var context = new Bebko_41Entities())
+            {
+                var orderProductsFromDb = context.OrderProduct
+                    .Where(op => op.OrderID == orderID)
+                    .ToList();
+
+                // Можно добавить их в selectedOrderProducts, если нужно
+            }
         }
+
+
+
+
+
+
 
         private void SaveOrderBtn_Click(object sender, RoutedEventArgs e)
         {
-            //  existingOrderID = newOrderID;
+            if (selectedOrderProducts.Count == 0 || OrderDP.SelectedDate == null ||
+                DateDeliverDP.SelectedDate == null || PickUpCombo.SelectedItem == null)
+            {
+                MessageBox.Show("Заполните все поля!");
+                return;
+            }
+
             try
             {
-                if (PickUpCombo.SelectedItem == null)
+                using (var context = new Bebko_41Entities())
                 {
-                    MessageBox.Show("Пожалуйста, выберите пункт выдачи.");
-                    return;
-                }
-                var order = new Order
-                {
-                    OrderID = existingOrderID,
-                    OrderDate = DateTime.Now,
-                    OrderDeliveryDate = DateDeliverDP.SelectedDate ?? DateTime.Now.AddDays(3), // Установите дату доставки
-                    OrderPickupPoint = (int)PickUpCombo.SelectedValue, // Установите пункт выдачи
-                    OrderStatus = "Новый"
-                };
-
-                if (!string.IsNullOrEmpty(FIOO))
-                {
-                    // Если клиент авторизован, установите его ID
-                    var client = Bebko_41Entities.GetContext().User.FirstOrDefault(u => u.UserSurname + " " + u.UserName + " " + u.UserPatronymic == FIOO);
-                    if (client != null)
+                    // Создаем новый заказ
+                    var newOrder = new Order
                     {
-                        order.OrderClientID = client.UserID;
-                    }
-                }
-
-                Bebko_41Entities.GetContext().Order.Add(order);
-                Bebko_41Entities.GetContext().SaveChanges();
-
-                foreach (var op in selectedOrderProducts)
-                {
-                    var orderProduct = new OrderProduct
-                    {
-                        OrderID = existingOrderID,
-                        ProductArticleNumber = op.ProductArticleNumber,
-                        Quantity = op.Quantity
+                        OrderID = GenerateNewOrderID(),
+                        OrderDate = OrderDP.SelectedDate.Value,
+                        OrderDeliveryDate = DateDeliverDP.SelectedDate.Value,
+                        OrderPickupPoint = (PickUpCombo.SelectedItem as PickUpPoint).PickUpPointID,
+                        OrderStatus = "Новый"
                     };
 
-                    Bebko_41Entities.GetContext().OrderProduct.Add(orderProduct);
+                    // Добавляем товары в заказ
+                    foreach (var op in selectedOrderProducts)
+                    {
+                        // Создаем новый OrderProduct для текущего контекста
+                        var newOrderProduct = new OrderProduct
+                        {
+                            OrderID = newOrder.OrderID,
+                            ProductArticleNumber = op.ProductArticleNumber,
+                            Quantity = op.Quantity
+                        };
+                        newOrder.OrderProduct.Add(newOrderProduct);
+                    }
+
+                    context.Order.Add(newOrder);
+                    context.SaveChanges();
                 }
 
-                Bebko_41Entities.GetContext().SaveChanges();
-
-                // existingOrderID = newOrderID;
+                MessageBox.Show("Заказ сохранен!");
+                selectedOrderProducts.Clear();
+                selectedProducts.Clear();
                 this.DialogResult = true;
-                this.UpdatedSelectedOrderProducts = selectedOrderProducts;
-                this.UpdatedSelectedProducts = selectedProducts;
-                this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении заказа: {ex.Message}");
+                MessageBox.Show($"Ошибка при сохранении: {ex.Message}");
             }
-
-
         }
+
+
+
+
         private int GenerateNewOrderID()
         {
-            return Bebko_41Entities.GetContext().Order.Any()
-                ? Bebko_41Entities.GetContext().Order.Max(o => o.OrderID) + 1
-                : 1;
+            using (var context = new Bebko_41Entities())
+            {
+                return context.Order.Any()
+                    ? context.Order.Max(o => o.OrderID) + 1
+                    : 1;
+            }
         }
+        private bool _isDateBeingSet = false; // Флаг для отслеживания
+
+
+ 
+
+
+        private DateTime? recommendedDeliveryDate; // Добавьте это поле в начало класса
+
         private void SetDeliveryDate()
         {
-            DateTime now = DateTime.Now;
-            if (DateDeliverDP.SelectedDate < now)
-            {
-                MessageBox.Show("Дата доставки не может быть раньше текущей даты.");
-            }
+            if (_isDateBeingSet || selectedOrderProducts.Count == 0)
+                return;
+
+            _isDateBeingSet = true;
+
+            // Проверяем, все ли товары есть в наличии (количество > 0)
+            bool allInStock = selectedOrderProducts.All(op =>
+                op.Product != null && op.Product.ProductQuantityInStock >= op.Quantity);
+
+            // Если все в наличии и более 3 позиций - 3 дня, иначе - 6
+            int deliveryDays = (allInStock && selectedOrderProducts.Count > 3) ? 3 : 6;
+
+            recommendedDeliveryDate = DateTime.Now.AddDays(deliveryDays);
+            DateDeliverDP.SelectedDate = recommendedDeliveryDate;
+
+            _isDateBeingSet = false;
         }
 
         private void DateDeliverDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
-            SetDeliveryDate();
+            // Если дата изменяется программно - игнорируем
+            if (_isDateBeingSet) return;
+
+            // Если дата не выбрана - ничего не делаем
+            if (DateDeliverDP.SelectedDate == null) return;
+
+            // Проверка, что дата не раньше текущей
+            if (DateDeliverDP.SelectedDate < DateTime.Now)
+            {
+                // Устанавливаем флаг, чтобы избежать рекурсии
+                _isDateBeingSet = true;
+
+                MessageBox.Show("Дата доставки не может быть раньше текущей!");
+                DateDeliverDP.SelectedDate = DateTime.Now; // Корректируем на текущую дату
+
+                // Снимаем флаг после изменения
+                _isDateBeingSet = false;
+                return;
+            }
+
+            // Проверка, что дата не раньше рекомендованной (только предупреждение)
+            if (recommendedDeliveryDate.HasValue && DateDeliverDP.SelectedDate < recommendedDeliveryDate)
+            {
+                MessageBox.Show($"Рекомендуемая дата доставки: {recommendedDeliveryDate.Value.ToShortDateString()}.\n" +
+                              "Вы выбрали более раннюю дату, что может привести к задержке.",
+                              "Внимание",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Warning);
+            }
         }
-
-
 
 
         private void UpdateOrderInfo()
         {
-            decimal totalCost = 0;
-            decimal totalDiscount = 0;
-            ShoeListView.ItemsSource = selectedOrderProducts;
+            decimal total = 0;
+            decimal discount = 0;
+
             foreach (var op in selectedOrderProducts)
             {
-                // Ищем продукт в selectedProducts
                 var product = selectedProducts.FirstOrDefault(p => p.ProductArticleNumber == op.ProductArticleNumber);
-
                 if (product != null)
                 {
-                    Console.WriteLine($"Товар: {product.ProductName}, Количество: {op.Quantity}, Стоимость: {product.ProductCost}, Скидка: {product.ProductDiscountAmount}");
-                    totalCost += product.ProductCost * op.Quantity;
-                    totalDiscount += (product.ProductCost * op.Quantity * (product.ProductDiscountAmount ?? 0) / 100);
-                }
-                else
-                {
-                    Console.WriteLine("Товар не найден");
+                    decimal sum = product.ProductCost * op.Quantity;
+                    total += sum;
+                    discount += sum * (product.ProductDiscountAmount ?? 0) / 100;
                 }
             }
 
-            Console.WriteLine($"Общая сумма: {totalCost}, Общая скидка: {totalDiscount}");
-
-            TotalCostTB.Text = $"Сумма: {totalCost} рублей";
-            TotalDiscountTB.Text = $"Скидка: {totalDiscount} рублей";
-
+            TotalCostTB.Text = $"Сумма: {total:0.00} руб.";
+            TotalDiscountTB.Text = $"Скидка: {discount:0.00} руб.";
+            ShoeListView.Items.Refresh();
         }
 
 
 
         private void DelProd_Click_1(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var product = (Product)button.DataContext;
-
-            Console.WriteLine($"Удаляем продукт: {product.ProductName}");
-
-            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
-
-            if (existing != null)
-            {
-                selectedOrderProducts.Remove(existing);
-            }
-
-            // Удалите продукт из selectedProducts
-            var productToRemove = selectedProducts.FirstOrDefault(p => p.ProductArticleNumber == product.ProductArticleNumber);
-            if (productToRemove != null)
-            {
-                selectedProducts.Remove(productToRemove);
-            }
-
-            if (!selectedOrderProducts.Any())
-            {
-                // Обработка случая без товаров
-            }
-
+            var orderProduct = (OrderProduct)((Button)sender).DataContext;
+            selectedOrderProducts.Remove(orderProduct);
+            selectedProducts.RemoveAll(p => p.ProductArticleNumber == orderProduct.ProductArticleNumber);
             UpdateOrderInfo();
-            //  ShoeListView.ItemsSource = null;
-            ShoeListView.ItemsSource = selectedProducts;
-            ShoeListView.ItemsSource = selectedOrderProducts; // Set the correct source
-
-            ShoeListView.Items.Refresh(); // Refresh the ListView
-
+            SetDeliveryDate();
         }
 
         private void IncQuantity_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var product = (Product)button.DataContext;
-
-            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
-
-            if (existing != null)
-            {
-                existing.Quantity++;
-            }
-
+            var orderProduct = (OrderProduct)((Button)sender).DataContext;
+            orderProduct.Quantity++;
             UpdateOrderInfo();
-            ShoeListView.ItemsSource = null;
-            ShoeListView.ItemsSource = selectedProducts;
-            ShoeListView.Items.Refresh();
+            SetDeliveryDate();
         }
-
         private void DecQuantity_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var product = (Product)button.DataContext;
-
-            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
-
-            if (existing != null && existing.Quantity > 1)
+            var orderProduct = (OrderProduct)((Button)sender).DataContext;
+            if (orderProduct.Quantity > 1)
             {
-                existing.Quantity--;
+                orderProduct.Quantity--;
             }
-            else if (existing != null && existing.Quantity == 1)
+            else
             {
-                selectedOrderProducts.Remove(existing);
+                selectedOrderProducts.Remove(orderProduct);
+                selectedProducts.RemoveAll(p => p.ProductArticleNumber == orderProduct.ProductArticleNumber);
             }
-
             UpdateOrderInfo();
-            ShoeListView.ItemsSource = null;
-            ShoeListView.ItemsSource = selectedProducts;
-            ShoeListView.Items.Refresh();
+            SetDeliveryDate();
         }
 
         private void PickUpCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
