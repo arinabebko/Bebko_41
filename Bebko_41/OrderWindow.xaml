@@ -42,7 +42,7 @@
         <Button Name="SaveOrderBtn" Content="Сохранить" Width="150" Height="30" Grid.Column="1"  Grid.Row="6" Margin="200,5,200,0" VerticalAlignment="Top" Click="SaveOrderBtn_Click"></Button>
 
         <TextBlock Name="TotalCostTB"  Grid.Column="0"  Grid.Row="6"></TextBlock>
-        <TextBlock Name="TotalDiscountTB"  Grid.Column="0"  Grid.Row="6"></TextBlock>
+        <TextBlock Name="TotalDiscountTB"  Grid.Column="1" HorizontalAlignment="Left"  Grid.Row="6"></TextBlock>
 
 
         <TextBlock Name="OrderFIO" Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left"></TextBlock>
@@ -51,7 +51,7 @@
 
 
 
-        <ComboBox Name="PickUpCombo"   DisplayMemberPath="PickUpPointStreet" Grid.Row="4" Grid.Column="1" HorizontalAlignment="Left" Margin="0,174,0,0" Grid.RowSpan="2" Width="450" Height="30" ></ComboBox>
+        <ComboBox Name="PickUpCombo"   FontSize="16" SelectionChanged="PickUpCombo_SelectionChanged"  DisplayMemberPath="DisplayInfo" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Left" Margin="0,4,0,0"  Width="450" Height="30" ></ComboBox>
 
 
 
@@ -95,7 +95,11 @@
             <TextBlock Text="{Binding ProductManufacturer}"  Grid.Column="1" Grid.Row="2" HorizontalAlignment="Left"></TextBlock>
             <TextBlock Text="{Binding ProductCost, StringFormat={}{0} рублей}"  Grid.Column="1" Grid.Row="3" HorizontalAlignment="Left"></TextBlock>
                         <Button Grid.Column="5" Content="Удалить" Click="DelProd_Click_1"  Name="DelProd" />
-
+                        <StackPanel Orientation="Horizontal" Grid.Column="5" Grid.Row="3" HorizontalAlignment="Right">
+                            <Button Content="-" Width="40" Height="40" Margin="2" Name="DecQuantity" Click="DecQuantity_Click" ></Button>
+                            <TextBlock Text="{Binding Quantity}" Width="30" HorizontalAlignment="Center"></TextBlock>
+                            <Button Content="+" Width="40" Height="40" Margin="2" Name="IncQuantity" Click="IncQuantity_Click" ></Button>
+                        </StackPanel>
                     </Grid>
     </DataTemplate>
 </ListView.ItemTemplate>

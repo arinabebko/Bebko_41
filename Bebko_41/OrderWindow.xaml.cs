@@ -24,145 +24,37 @@ namespace Bebko_41
 
         List<OrderProduct> selectedOrderProducts = new List<OrderProduct>();
         List<Product> selectedProducts = new List<Product>();
-        private Order currentOrder=new Order();
-        private OrderProduct currentProduct=new OrderProduct();
+        private Order currentOrder = new Order();
+        private OrderProduct currentProduct = new OrderProduct();
         private string FIOO; // Объявление переменной
-
+        public List<OrderProduct> UpdatedSelectedOrderProducts { get; set; }
+        public List<Product> UpdatedSelectedProducts { get; set; }
 
         private int newOrderID; // Объявление переменной
 
+        private int existingOrderID;
 
-
-        public OrderWindow(List<OrderProduct> selectedOrderProducts, List<Product> selectedProducts, string FIO)
+        public OrderWindow(List<OrderProduct> selectedOrderProducts, List<Product> selectedProducts, string FIO, int orderID)
         {
             InitializeComponent();
-            this.FIOO = FIO; // Инициализация
-            newOrderID = GenerateNewOrderID();
-            this.savedSelectedProducts = selectedProducts;
-            UpdateOrderInfo();
-            //     ShoeListView.ItemsSource = selectedProducts;
-
-
-            var currentPickups = Bebko_41Entities.GetContext().PickUpPoint.ToList();
-            PickUpCombo.ItemsSource = currentPickups;
-            PickUpCombo.DisplayMemberPath = "PickUpPointStreet";
-
-            PickUpCombo.ItemsSource = currentPickups;
-          
-
-            if (FIO != null)
-            {
-                ClientTB.Text = FIO;
-            }
-            else
-            {
-                ClientTB.Text = "Вы зашли как гость";
-            }
-            //OrderIDTB.Text=selectedOrderProducts.First().OrderID.ToString();
-            //
-            if (selectedOrderProducts.Any())
-            {
-                OrderIDTB.Text = selectedOrderProducts.First().OrderID.ToString();
-            }
-            else
-            {
-                // Обработка случая без товаров
-            }
-
-            ShoeListView.ItemsSource = selectedProducts;
-            
-            foreach(Product p in selectedProducts)
-            {
-                p.Quantity = 1;
-                foreach (OrderProduct q in selectedOrderProducts)
-                {
-                    if (p.ProductArticleNumber == q.ProductArticleNumber)
-                        p.Quantity = q.Quantity;
-                }
-            }
-
+            this.FIOO = FIO;
             this.selectedOrderProducts = selectedOrderProducts;
             this.selectedProducts = selectedProducts;
-          OrderDP.Text = DateTime.Now.ToString();
-         SetDeliveryDate();
-
-
-            
-
-        }
-        private int GenerateNewOrderID()
-        {
-            return Bebko_41Entities.GetContext().Order.Any()
-                ? Bebko_41Entities.GetContext().Order.Max(o => o.OrderID) + 1
-                : 1;
-        }
-        private void SetDeliveryDate()
-        {
-            DateTime now = DateTime.Now;
-            if (DateDeliverDP.SelectedDate < now)
-            {
-                MessageBox.Show("Дата доставки не может быть раньше текущей даты.");
-            }
-        }
-
-        private void DateDeliverDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SetDeliveryDate();
-        }
-
-     
-
-        private void DelProd_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var product = (Product)button.DataContext;
-
-            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
-
-            if (existing != null)
-            {
-                selectedOrderProducts.Remove(existing);
-            }
-
-            if (!selectedOrderProducts.Any())
-            {
-                // Обработка случая без товаров
-            }
-
+            this.existingOrderID = orderID;
             UpdateOrderInfo();
-            ShoeListView.ItemsSource = null;
+            var pickUpPoints = Bebko_41Entities.GetContext().PickUpPoint.ToList();
+            PickUpCombo.ItemsSource = pickUpPoints;
+         
             ShoeListView.ItemsSource = selectedProducts;
+            // Остальной код конструктора
+            ClientTB.Text = FIOO; // Если используете ClientTB
+            OrderDP.Text = DateTime.Now.ToString("dd.MM.yyyy"); // Формат даты: день.месяц.год
+            OrderNumber.Text = existingOrderID.ToString();
         }
-        private void UpdateOrderInfo()
-{
-    decimal totalCost = 0;
-    decimal totalDiscount = 0;
-
-    foreach (var op in selectedOrderProducts)
-    {
-        var product = savedSelectedProducts.FirstOrDefault(p => p.ProductArticleNumber == op.ProductArticleNumber);
-
-        if (product != null)
-        {
-            Console.WriteLine($"Товар: {product.ProductName}, Количество: {op.Quantity}, Стоимость: {product.ProductCost}, Скидка: {product.ProductDiscountAmount}");
-            totalCost += product.ProductCost * op.Quantity;
-            totalDiscount += (product.ProductCost * op.Quantity * (product.ProductDiscountAmount ?? 0) / 100);
-        }
-        else
-        {
-            Console.WriteLine("Товар не найден");
-        }
-    }
-
-    Console.WriteLine($"Общая сумма: {totalCost}, Общая скидка: {totalDiscount}");
-
-    TotalCostTB.Text = $"Сумма: {totalCost} рублей";
-    TotalDiscountTB.Text = $"Скидка: {totalDiscount} рублей";
-}
 
         private void SaveOrderBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            //  existingOrderID = newOrderID;
             try
             {
                 if (PickUpCombo.SelectedItem == null)
@@ -172,7 +64,7 @@ namespace Bebko_41
                 }
                 var order = new Order
                 {
-                    OrderID = newOrderID,
+                    OrderID = existingOrderID,
                     OrderDate = DateTime.Now,
                     OrderDeliveryDate = DateDeliverDP.SelectedDate ?? DateTime.Now.AddDays(3), // Установите дату доставки
                     OrderPickupPoint = (int)PickUpCombo.SelectedValue, // Установите пункт выдачи
@@ -196,7 +88,7 @@ namespace Bebko_41
                 {
                     var orderProduct = new OrderProduct
                     {
-                        OrderID = newOrderID,
+                        OrderID = existingOrderID,
                         ProductArticleNumber = op.ProductArticleNumber,
                         Quantity = op.Quantity
                     };
@@ -205,17 +97,80 @@ namespace Bebko_41
                 }
 
                 Bebko_41Entities.GetContext().SaveChanges();
+
+                // existingOrderID = newOrderID;
+                this.DialogResult = true;
+                this.UpdatedSelectedOrderProducts = selectedOrderProducts;
+                this.UpdatedSelectedProducts = selectedProducts;
+                this.Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при сохранении заказа: {ex.Message}");
             }
+
+
         }
+        private int GenerateNewOrderID()
+        {
+            return Bebko_41Entities.GetContext().Order.Any()
+                ? Bebko_41Entities.GetContext().Order.Max(o => o.OrderID) + 1
+                : 1;
+        }
+        private void SetDeliveryDate()
+        {
+            DateTime now = DateTime.Now;
+            if (DateDeliverDP.SelectedDate < now)
+            {
+                MessageBox.Show("Дата доставки не может быть раньше текущей даты.");
+            }
+        }
+
+        private void DateDeliverDP_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SetDeliveryDate();
+        }
+
+
+
+
+        private void UpdateOrderInfo()
+        {
+            decimal totalCost = 0;
+            decimal totalDiscount = 0;
+            ShoeListView.ItemsSource = selectedOrderProducts;
+            foreach (var op in selectedOrderProducts)
+            {
+                // Ищем продукт в selectedProducts
+                var product = selectedProducts.FirstOrDefault(p => p.ProductArticleNumber == op.ProductArticleNumber);
+
+                if (product != null)
+                {
+                    Console.WriteLine($"Товар: {product.ProductName}, Количество: {op.Quantity}, Стоимость: {product.ProductCost}, Скидка: {product.ProductDiscountAmount}");
+                    totalCost += product.ProductCost * op.Quantity;
+                    totalDiscount += (product.ProductCost * op.Quantity * (product.ProductDiscountAmount ?? 0) / 100);
+                }
+                else
+                {
+                    Console.WriteLine("Товар не найден");
+                }
+            }
+
+            Console.WriteLine($"Общая сумма: {totalCost}, Общая скидка: {totalDiscount}");
+
+            TotalCostTB.Text = $"Сумма: {totalCost} рублей";
+            TotalDiscountTB.Text = $"Скидка: {totalDiscount} рублей";
+
+        }
+
+
 
         private void DelProd_Click_1(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
             var product = (Product)button.DataContext;
+
+            Console.WriteLine($"Удаляем продукт: {product.ProductName}");
 
             var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
 
@@ -224,15 +179,78 @@ namespace Bebko_41
                 selectedOrderProducts.Remove(existing);
             }
 
+            // Удалите продукт из selectedProducts
+            var productToRemove = selectedProducts.FirstOrDefault(p => p.ProductArticleNumber == product.ProductArticleNumber);
+            if (productToRemove != null)
+            {
+                selectedProducts.Remove(productToRemove);
+            }
+
             if (!selectedOrderProducts.Any())
             {
-                // Скрыть кнопку просмотра заказа
+                // Обработка случая без товаров
+            }
+
+            UpdateOrderInfo();
+            //  ShoeListView.ItemsSource = null;
+            ShoeListView.ItemsSource = selectedProducts;
+            ShoeListView.ItemsSource = selectedOrderProducts; // Set the correct source
+
+            ShoeListView.Items.Refresh(); // Refresh the ListView
+
+        }
+
+        private void IncQuantity_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var product = (Product)button.DataContext;
+
+            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
+
+            if (existing != null)
+            {
+                existing.Quantity++;
             }
 
             UpdateOrderInfo();
             ShoeListView.ItemsSource = null;
             ShoeListView.ItemsSource = selectedProducts;
+            ShoeListView.Items.Refresh();
         }
-    }
 
+        private void DecQuantity_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var product = (Product)button.DataContext;
+
+            var existing = selectedOrderProducts.FirstOrDefault(op => op.ProductArticleNumber == product.ProductArticleNumber);
+
+            if (existing != null && existing.Quantity > 1)
+            {
+                existing.Quantity--;
+            }
+            else if (existing != null && existing.Quantity == 1)
+            {
+                selectedOrderProducts.Remove(existing);
+            }
+
+            UpdateOrderInfo();
+            ShoeListView.ItemsSource = null;
+            ShoeListView.ItemsSource = selectedProducts;
+            ShoeListView.Items.Refresh();
+        }
+
+        private void PickUpCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            {
+                if (PickUpCombo.SelectedItem != null)
+                {
+                    var selectedPickup = PickUpCombo.SelectedItem as PickUpPoint;
+                    // Сохраните выбранный пункт выдачи для заказа
+                    currentOrder.OrderPickupPoint = selectedPickup.PickUpPointID; // Предполагается, что у вас есть свойство PickUpPointID
+                }
+            }
+        }
+
+    }
 }
