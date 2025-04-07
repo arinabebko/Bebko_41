@@ -76,11 +76,19 @@
             <TextBlock  Text=" " Name="CountText"
                         >   Количество:
             </TextBlock>
-        
+
+                <Button Content="Заказ" Height="30" Width="100" Name="OrderBtn" Click="OrderBtn_Click"></Button>
+                
         </StackPanel>
         </StackPanel>
 
         <ListView Name="ProductListView"  Margin="5,5,5,5" Grid.Row="1">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Добавить к заказу" Click="MenuItem_Click_1"></MenuItem>
+                </ContextMenu>
+            </ListView.ContextMenu>
+
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid>

@@ -18,12 +18,25 @@ namespace Bebko_41
     /// <summary>
     /// Логика взаимодействия для ProductPage.xaml
     /// </summary>
+    /// 
+
+
     public partial class ProductPage : Page
     {
         private User currentUser;
+        string FIOO;
+        private int newOrderID = 1;
+        private List<Product> savedSelectedProducts = new List<Product>();
+
+     
+
+
+        private List<OrderProduct> selectedOrderProducts = new List<OrderProduct>();
+
         public ProductPage(User user)
         {
             InitializeComponent();
+            OrderBtn.Visibility = Visibility.Collapsed;
             if (user == null)
             {
                 FOITB.Text = "Гость";
@@ -42,7 +55,7 @@ namespace Bebko_41
                     case 3:
                         RoleTB.Text = "Менеджер"; break;
                 }
-
+                FIOO= FOITB.Text;
             }
 
 
@@ -54,6 +67,12 @@ namespace Bebko_41
             Updt();
         }
 
+        private int GetNextOrderId()
+        {
+            return Bebko_41Entities.GetContext().Order.Any()
+                ? Bebko_41Entities.GetContext().Order.Max(o => o.OrderID) + 1
+                : 1;
+        }
 
         private void Updt()
         {
@@ -128,5 +147,64 @@ namespace Bebko_41
         {
             Updt();
         }
+
+
+       
+        private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+        {
+            if (ProductListView.SelectedIndex >= 0)
+            {
+
+                var selectedProducts = ProductListView.SelectedItems.Cast<Product>().ToList();
+                selectedProducts = selectedProducts.Distinct().ToList();
+                var prod = ProductListView.SelectedItem as Product;
+            //    selectedProducts.Add(prod);
+                savedSelectedProducts = selectedProducts;
+                var newOrderProd = new OrderProduct();
+              
+                 newOrderProd.OrderID = newOrderID;
+
+                newOrderProd.ProductArticleNumber = prod.ProductArticleNumber;
+               newOrderProd.Quantity = 1;
+              //  selectedOrderProducts.Add(newOrderProd); // Добавьте в список
+
+                var selOP = selectedOrderProducts.Where(p => Equals(p.ProductArticleNumber, prod.ProductArticleNumber));
+                if (selOP.Count() == 0)
+                {
+                    selectedOrderProducts.Add(newOrderProd);
+                }
+                else
+                {
+                    foreach(OrderProduct p in selectedOrderProducts)
+                    {
+                        if (p.ProductArticleNumber == prod.ProductArticleNumber)
+                            p.Quantity++;
+                    }
+                }
+
+                OrderBtn.Visibility = Visibility.Visible;
+                ProductListView.SelectedIndex = -1;
+
+            }
+        }
+
+        private void OrderBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+            newOrderID = GetNextOrderId();
+            OrderWindow orderWindow = new OrderWindow( selectedOrderProducts, savedSelectedProducts, FIOO);
+            orderWindow.ShowDialog();
+            if (selectedOrderProducts.Any())
+            {
+                OrderBtn.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                OrderBtn.Visibility = Visibility.Collapsed;
+            }
+        }
+      
+
+
     }
 }

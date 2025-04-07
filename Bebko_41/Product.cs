@@ -34,7 +34,7 @@ namespace Bebko_41
         public string ProductPhoto { get; set; }
 
 
-       
+        public int Quantity { get; set; } 
 
         public string ProductPhotoPath
         {
